@@ -1,0 +1,68 @@
+Historical inputs of Kholberg menus from https://www.dash.swarthmore.edu/dining_json
+(because Kohlberg can't maintain consistency so the regex keeps messing up...)
+
+SWAT DINING LIBRARY IS NO LONGER HERE, MOVE THIS LOG TO /srv/services/diningAPI
+on Ibis
+
+Latest inputs are appended to the end of the file
+
+LATEST REGEX DEV: https://regex101.com/r/uuXKLU/1
+
+data > kholberg > html_description
+
+Format follows:
+{
+	ENTRY:
+	<text here>
+
+	MENU REGEX: <regex here>
+	SOUP REGEX: <regex here>
+}
+
+alt + z to wrap text for easy copying and viewing
+
+========================================================================================================================
+
+ENTRY:
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pasties and snacks also available. <br><b>Today's Soup- Cream of Tomato </b><br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><b>Grab and Go Available Monday-Friday 11am-1:45pm </b><br><b><br></b><br><b><i>Wednesdays Menu </i></b><p><i>Chicken Salad on Ciabatta with Lettuce and Tomato.</i></p><p><i>Tofu Crumble Egg Salad on Rye (see attached Recipe)</i></p><p><i>Almond Butter &amp; Jam On Multigrain</i></p><p><i>Chicken Caesar </i></p><p><i>Garden Salad with Hummus </i></p><p><br></p>"
+
+MENU REGEX: /Menu(.+)/gi
+SOUP REGEX: /Soup- (.+?)</g
+
+
+
+ENTRY:
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pasties and snacks also available. <br>Today's Soup- Santa fe tortilla <br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><b>Grab and Go Available Monday-Friday 11am-1:45pm </b><br><b><br></b><br><i><b>Thursdays Order </b></i><p><i>Ham &amp; Brie on Rye</i></p><p><i>TTLA on Multigrain (Tempeh Club)</i><br></p><p><i>Sun Butter &amp; Jam on Multi Grain Bread</i></p><p><i>Chicken Caesar Salad </i></p><p><i>Chef Salad  </i></p><p><br></p><p><br></p>"
+
+REGEX USED: /(?:Menu|order)(.+)<p><br><\/p>/gi
+SOUP REGEX: /Soup- (.+?)</g
+
+
+
+ENTRY: 
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pasties and snacks also available. <br>Todays Soup- Italian Wedding with meatballs <br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><b>Grab and Go Available Monday-Friday 11am-1:45pm </b><b><br></b><br><b><i>Wednesdays Menu </i></b><p><i>Chicken Salad on Ciabatta with Lettuce and Tomato.</i></p><p><i>Tofu Crumble Egg Salad on Rye (see attached Recipe)</i></p><p><i>Almond Butter &amp; Jam On Multigrain</i></p><p><i>Chicken Caesar </i></p><p><i>Garden Salad with Hummus </i></p><p><br></p>"
+
+REGEX USED: /(?:Menu|order)(.+)<p><br><\/p>/gi
+SOUP REGEX: /Soup- (.+?)</
+
+
+
+ENTRY:
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pasties and snacks also available. <br><b>Todays Soup-Cream of Tomato </b><br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><b>Grab and Go Available Monday-Friday 11am-1:45pm </b><b><br></b><br><i><b>Mondays Menu </b></i><p><i>Grilled Chicken with Pesto on Ciabatta</i></p><p><i>Hummus with roasted peppers on Ciabatta</i></p><p><i>Almond Butter and Jam  Butter &amp; Jam on LB  Multi Grain </i></p><p><i>Chicken Caesar Salad </i></p><p><i>Chef Salad </i></p><p><i><br></i></p>"
+
+REGEX USED: /(?:Menu|order)(.+)<\/i>/gi
+SOUP REGEX: /Soup-(?:\s?)(.+?)</
+
+
+
+ENTRY:
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pastries and snacks also available. <br>Todays Soup - Fire Roasted Vegetable <br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><b>Grab and Go Available Monday-Friday 11:30 am-1:45pm </b><b><br></b><br><i><b>Tuesdays Menu </b></i><p><i>Roast Turkey  Provolone</i></p><p><i>TTLA on Multigrain (Tempeh Club)</i></p><p><i>Sun Butter &amp; Jam (Club Style) On  Multi Grain</i></p><p><i>Chicken Caesar Salad  </i></p><p><i>Garden Salad with Tuna </i></p><p><i><br></i></p><i><br></i>"
+
+REGEX USED: /(?:Menu|order)(.+)<\/i>/gi
+SOUP REGEX: /Soup(?:\s?)-(?:\s?)(.+?)</
+
+
+
+
+
+
