@@ -6,7 +6,7 @@ on Ibis
 
 Latest inputs are appended to the end of the file
 
-LATEST REGEX DEV: https://regex101.com/r/uuXKLU/1
+LATEST REGEX DEV: https://regex101.com/r/ZWoHD4/1
 
 data > kholberg > html_description
 
@@ -62,6 +62,20 @@ REGEX USED: /(?:Menu|order)(.+)<\/i>/gi
 SOUP REGEX: /Soup(?:\s?)-(?:\s?)(.+?)</
 
 
+
+ENTRY: (no soup)
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pasties and snacks also available. <br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><br><b>Grab and Go Available Monday-Friday 11:30am-1:45pm </b><br><b><br></b><br><b><i>Fridays Menu </i></b><br><p dir=\"ltr\"><i>Fresh Mozzarella &amp; Pesto on Ciabatta </i></p><p dir=\"ltr\"><i>Roasted Veggies on Ciabatta </i></p><p dir=\"ltr\"><i>Almond Butter &amp; Jam on Multi Grain (Club style)</i></p><p dir=\"ltr\"><i>Chicken Caesar Salad </i></p><p dir=\"ltr\"><i>Garden Salad  </i></p><p dir=\"ltr\"><br></p>"
+
+REGEX USED: /(?:Menu|order)(.+)<\/i>/gi
+SOUP REGEX: /Soup(?:\s?)-(?:\s?)(.+?)</
+
+
+
+ENTRY: (no soup)
+"We are here to serve you specialty Coffee drinks and smoothies. We have a wide range of pasties and snacks also available. <br>Shere Punjab will be back this semester with delicious Indian entree's available every lunch time Monday-Thursday.<br><br><b>Grab and Go Available Monday-Friday 11:30am-1:45pm </b><br><b><br></b><br><b><i>Fridays Menu </i></b><br><p dir=\"ltr\"><i>Fresh Mozzarella &amp; Pesto on Ciabatta </i></p><p dir=\"ltr\"><i>Roasted Veggies on Ciabatta </i></p><p dir=\"ltr\"><i>Almond Butter &amp; Jam on Multi Grain (Club style)</i></p><p dir=\"ltr\"><i>Chicken Caesar Salad </i></p><p dir=\"ltr\"><i>Garden Salad  </i></p><p dir=\"ltr\"><br></p>"
+
+REGEX USED: /(?:Menu|order)(.+)<\/i>/gi
+SOUP REGEX: /Soup(?:\s?)-(?:\s?)(.+?)</
 
 
 

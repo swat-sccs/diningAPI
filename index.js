@@ -16,7 +16,7 @@ var cachedData;
 var now = new Date();
 var msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 1, 0) - now;
 if (msUntilMidnight < 0) {
-    msUntilMidnight += 86400000; // it's after 10am, try 10am tomorrow.
+    msUntilMidnight += 86400000;
 }
 setTimeout(async function () {
     cachedData = await DiningObject();
@@ -101,8 +101,9 @@ function objectifier(venue, html) {
 			const menuMatch = html.match(KBMenuRegex);
 			// const menuMatch = html.match(/m/);
             if (menuMatch) {
-                const items = menuMatch[0].split('<p>').map(item => item.trim());
-                const menuItems = items.slice(1).map(instance => {
+                const items = menuMatch[0].split('</p>').map(item => item.trim());
+                console.log(items)
+                const menuItems = items.slice(0).map(instance => {
                     const item = stripHtmlTags(instance);
                     if (item == '') {
                         return {};
@@ -115,8 +116,8 @@ function objectifier(venue, html) {
 
                 ret['menu'] = menuItems;
             } else {
-                console.log('No Kholberg menu found.');
-                ret['menu'] = {};
+                console.log('No Kolhberg menu found.');
+                ret['menu'] = null;
             }
             return ret;
     };
@@ -188,9 +189,13 @@ async function DiningObject() {
         result["Kohlberg"] = KohlbergObject;
 		result["metadata"] = "generated";
 
+        result["date"] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        
+        
         // return result
-        cachedData = result
+        cachedData = result;
 		cachedData["metadata"] = "cached";
+        
         return result
     });
 };

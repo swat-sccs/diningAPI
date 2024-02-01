@@ -4,6 +4,10 @@ Basically serves dining option data for campus options but contains custom
 JSON data structures for ease of data customization. Hosted, daemonized, 
 and served off Ibis using Linux's PM2 as a Node Express app.
 
+To start the service, run:
+
+pm2 start index.js
+
 In order to see the changes that you've done to the index.js file, reload
 the running process using pm2:
 
