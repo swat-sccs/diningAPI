@@ -19,7 +19,9 @@ running programs on pm2, run
 pm2 ps
 
 After it successfully reloads, you're good to go. Simply nagivate to 
-http://dining.sccs.swarthmore.edu/api to see the output.
+http://dining.sccs.swarthmore.edu/api to see the output. We recommend 
+using a JSON formatter browser extension to make it more readable like
+this: https://tinyurl.com/y68w29py .
 
 ## Endpoints:
  - /        | None
