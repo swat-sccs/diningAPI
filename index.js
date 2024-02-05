@@ -1,4 +1,5 @@
 const express = require('express');
+const hash = require('object-hash');
 const app = express();
 const PORT = 8080;
 
@@ -9,18 +10,6 @@ const url = 'https://dash.swarthmore.edu/dining_json';
 
 const KBMenuRegex = /(?:Menu|order)(.+)<\/i>/gi;
 const KBSoupRegex = /Soup(?:\s?)-(?:\s?)(.+?)</;
-
-var cachedData;
-
-// recache data everyday, or update the cached data every day at midnight + 1 second
-var now = new Date();
-var msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 1, 0) - now;
-if (msUntilMidnight < 0) {
-    msUntilMidnight += 86400000;
-}
-setTimeout(async function () {
-    cachedData = await DiningObject();
-}, msUntilMidnight);
 
 // remove all <></> tags, trim whitespace, and replace double spaces with single ones 
 function stripHtmlTags(s) {
@@ -124,6 +113,7 @@ function objectifier(venue, html) {
 
 };
 
+
 async function DiningObject() {
     return Get(url).then(data => {
         const result = {}
@@ -189,13 +179,9 @@ async function DiningObject() {
         result["Kohlberg"] = KohlbergObject;
 		result["metadata"] = "generated";
 
-        result["date"] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-        
-        
-        // return result
-        cachedData = result;
-		cachedData["metadata"] = "cached";
-        
+        let now = new Date();
+        result["date"] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), -5, 0, 0, 0);
+                
         return result
     });
 };
@@ -209,16 +195,22 @@ app.use((req, res, next) => {
 });
 
 app.get('/api', async (req, res) => {
-    // if sent a request and we haven't generated data for day, 
-    // generate it and send it
-    if (!cachedData) {
-        const data = await DiningObject();
-        res.json(data);
-        return
-    } else {   // else if cached data exists, send that
+    // if something was cached, return it
+    if (cachedData){
+        console.log("Data cached found, responding...")
         res.json(cachedData);
         return
     }
+
+    // console.log(hash(cachedData))
+    
+    // failsafe, just generate the object, cache it, and return it
+    console.log("No data cached, generating new object...")
+    
+    cachedData = await DiningObject()
+    res.json(cachedData)
+    cachedData["metadata"] = "cached";
+    return
 });
 
 app.get('/', (req, res) => {
@@ -232,6 +224,9 @@ app.get('/data', async (req, res) => {
     })
 });
 
-app.listen(PORT, () => {
+var cachedData;
+
+app.listen(PORT, async () => {
     console.log(`Server is listening at port:${PORT}`);
+    cachedData = await DiningObject();
 });
