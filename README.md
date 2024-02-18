@@ -7,16 +7,10 @@ and served off Tern/Dodo using Linux's PM2 as a Node Express app.
 
 
 ## Start Service:
-pm2 start index.js --cron "*/15 * * * *" --watch
-
-### Temporary
-pm2 start pm2.utility.config.js --cron "*/15 * * * *" --watch 
-### Temporary
+pm2 start index.js --watch
 
 <pm2 start index.js> means that we will start the program, index.js, using pm2,
 or the (node) package manager 2.
-<--cron "*/15 * * * *"> means that pm2 will restart this program every 
-15 minutes.
 <--watch> means that pm2 will auto-restart the process when index.js is changed
 
 
@@ -25,7 +19,6 @@ or the (node) package manager 2.
 pm2 restart <id>
 
 where <id> is the id of the running program (index.js). 
-
 
 
 ## View running processes and their IDs:
