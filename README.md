@@ -4,35 +4,55 @@ Basically serves dining option data for campus options but contains custom
 JSON data structures for ease of data customization. Hosted, daemonized, 
 and served off Tern/Dodo using Linux's PM2 as a Node Express app.
 
-To start the service, run:
 
-pm2 start index.js --cron "*/15 * * * *" 
+
+## Start Service:
+pm2 start index.js --cron "*/15 * * * *" --watch
+
+### Temporary
+pm2 start pm2.utility.config.js --cron "*/15 * * * *" --watch 
+### Temporary
 
 <pm2 start index.js> means that we will start the program, index.js, using pm2,
 or the (node) package manager 2.
-<--cron "*/15 * * * *"> means that pm2 will re-run this process every 
+<--cron "*/15 * * * *"> means that pm2 will restart this program every 
 15 minutes.
+<--watch> means that pm2 will auto-restart the process when index.js is changed
 
-After editing the index.js file, reload the process using:
 
+
+## Restart Service after editing index.js:
 pm2 restart <id>
 
-where <id> is the id of the running program (index.js). To see the list of 
-running programs on pm2, run
+where <id> is the id of the running program (index.js). 
 
+
+
+## View running processes and their IDs:
 pm2 ps
+
+
+
+## View crash causes:
+pm2 logs
+
 
 After it successfully reloads, you're good to go. Simply nagivate to 
 http://dining.sccs.swarthmore.edu/api to see the output. We recommend 
 using a JSON formatter browser extension to make it more readable like
 this: https://tinyurl.com/y68w29py .
 
+
+
+
 ## Endpoints:
  - /        | None
  - /data    | Original data provided from dash.swarthmore.edu/dining_json
  - /api     | Custom formatted data using index.js
 
-## MIGRATION TO A NEW SERVER ##
+
+
+## MIGRATION TO A NEW SERVER
 To migrate this API to a new server, copy all the files over as usual.
 
 Edit the DNS listing under /etc/binds/sccs.db, or where ever this file is. Check

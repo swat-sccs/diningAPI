@@ -83,15 +83,15 @@ function objectifier(venue, html) {
         //     ret["test"] = 'test'
         //     return ret;
         case 'kohlberg':
-			const KBSoupMatch = html.match(KBSoupRegex);
+            const KBSoupMatch = html.match(KBSoupRegex);
             const KBSoup = KBSoupMatch ? KBSoupMatch[1].trim() : null;
             ret['soup'] = KBSoup;
 
-			const menuMatch = html.match(KBMenuRegex);
-			// const menuMatch = html.match(/m/);
+            const menuMatch = html.match(KBMenuRegex);
+            // const menuMatch = html.match(/m/);
             if (menuMatch) {
                 const items = menuMatch[0].split('</p>').map(item => item.trim());
-                console.log(items)
+                // console.log(items)
                 const menuItems = items.slice(0).map(instance => {
                     const item = stripHtmlTags(instance);
                     if (item == '') {
@@ -177,36 +177,36 @@ async function DiningObject() {
         result["Essies"] = EssiesObject;
         // result["Science Center"] = ScienceCenterObject;
         result["Kohlberg"] = KohlbergObject;
-		result["metadata"] = "generated";
+        result["metadata"] = "generated";
 
         let now = new Date();
         result["date"] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), -5, 0, 0, 0);
-                
+
         return result
     });
 };
 
 
 app.use((req, res, next) => {
-	res.header('Access-Control-Allow-Origin', '*');
-	res.header('Access-Control-Allow-Methods', 'GET');
-	res.header('Access-Control-Allow-Headers', 'Content-Type');
-	next();
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
 });
 
 app.get('/api', async (req, res) => {
     // if something was cached, return it
-    if (cachedData){
-        console.log("Data cached found, responding...")
+    if (cachedData) {
+        // console.log("Data cached found, responding...")
         res.json(cachedData);
         return
     }
 
     // console.log(hash(cachedData))
-    
+
     // failsafe, just generate the object, cache it, and return it
-    console.log("No data cached, generating new object...")
-    
+    // console.log("No data cached, generating new object...")
+
     cachedData = await DiningObject()
     res.json(cachedData)
     cachedData["metadata"] = "cached";
