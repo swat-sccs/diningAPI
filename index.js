@@ -13,18 +13,6 @@ const KBSoupRegex = /Soup(?:\s?)-(?:\s?)(.+?)</;
 
 var cachedData;
 
-// Code below to run everyday at midnight + 1 second
-// // recache data everyday, or update the cached data every day at midnight + 1 second
-// var now = new Date();
-// var msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 1, 0) - now;
-// if (msUntilMidnight < 0) {
-//     msUntilMidnight += 86400000;
-// }
-
-// Dining Obj now refetches every 2 hours (7200000 ms)
-setTimeout(async function () {
-    cachedData = await DiningObject();
-}, 7200000);
 
 // remove all <></> tags, trim whitespace, and replace double spaces with single ones 
 function stripHtmlTags(s) {
@@ -245,5 +233,8 @@ var cachedData;
 
 app.listen(PORT, async () => {
     console.log(`Server is listening at port:${PORT}`);
-    cachedData = await DiningObject();
+    while (true) {
+        cachedData = await DiningObject();
+        await new Promise(r => setTimeout(r, 7200000));
+    }
 });
