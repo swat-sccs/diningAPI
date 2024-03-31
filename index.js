@@ -1,5 +1,5 @@
 const express = require('express');
-const hash = require('object-hash');
+// const hash = require('object-hash');
 const app = express();
 const PORT = 8080;
 
@@ -117,8 +117,58 @@ function objectifier(venue, html) {
 };
 
 
+async function CrumbObject() {
+    const CrumbURL = "https://crumb.sccs.swarthmore.edu/api/cal"
+    const data = await Get(CrumbURL)
+
+    var reformattedData = {
+        "menu": [],
+        "specials": [],
+        "exclusions": [
+            "Avocado Toast",
+            "Berry Smoothie",
+            "Caprese",
+            "Chicken Fingers",
+            "Chips",
+            "French Toast",
+            "Fries",
+            "Hot Chocolate",
+            "Italian Soda",
+            "Loaded Quesadilla",
+            "London Fog",
+            "Matcha Latte",
+            "Milkshake",
+            "Nachos",
+            "Pancakes",
+            "Simple Quesadilla",
+            "Tea"
+        ],
+        "time": "9:00pm - 11:00pm"
+    }
+
+    for (let item of data) {
+        
+        if (!item.daysOfWeek.includes(new Date().getDay()))
+        // if (!item.daysOfWeek.includes(0))
+            continue
+
+        let index = reformattedData.exclusions.indexOf(item.title);
+
+        if (index > -1) {
+            reformattedData.menu.push(item.title.trim())
+            reformattedData.exclusions.splice(index, 1)
+        } else {
+            reformattedData.specials.push(item.title.trim())
+        }
+    }
+
+
+    return reformattedData
+}
+
+
 async function DiningObject() {
-    return Get(url).then(data => {
+    return Get(url).then(async data => {
         const result = {}
 
         // console.log(data.dining_center[2])
@@ -184,12 +234,14 @@ async function DiningObject() {
         result["Essies"] = EssiesObject;
         // result["Science Center"] = ScienceCenterObject;
         result["Kohlberg"] = KohlbergObject;
+        result["Crumb"] = await CrumbObject();
         result["metadata"] = "generated";
 
 
         return result
     });
 };
+
 
 
 app.use((req, res, next) => {
@@ -199,11 +251,12 @@ app.use((req, res, next) => {
     next();
 });
 
+
 app.get('/api', async (req, res) => {
     // if something was cached, return it
     if (cachedData) {
-        // console.log("Data cached found, responding...")
         res.json(cachedData);
+        // console.log("Data cached found, responding...")
         return
     }
 
@@ -214,8 +267,6 @@ app.get('/api', async (req, res) => {
 
     cachedData = await DiningObject()
     res.json(cachedData)
-    cachedData["metadata"] = "cached";
-    return
 });
 
 app.get('/', (req, res) => {
@@ -224,9 +275,11 @@ app.get('/', (req, res) => {
 
 // view the actual json being extracted
 app.get('/data', async (req, res) => {
-    Get(url).then(data => {
-        res.json(data);
-    })
+    res.json(await Get(url))
+});
+
+app.get('/crumb', async (req, res) => {
+    res.json(await CrumbObject())
 });
 
 var cachedData;
@@ -235,6 +288,7 @@ app.listen(PORT, async () => {
     console.log(`Server is listening at port:${PORT}`);
     while (true) {
         cachedData = await DiningObject();
+        cachedData["metadata"] = "cached";
         await new Promise(r => setTimeout(r, 7200000));
     }
 });
