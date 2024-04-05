@@ -26,7 +26,7 @@ pm2 ps
 
 
 
-## View crash causes:
+## View crash causes/console.log stuff:
 pm2 logs
 
 

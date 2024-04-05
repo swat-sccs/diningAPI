@@ -1,5 +1,5 @@
 const express = require('express');
-// const hash = require('object-hash');
+const hash = require('object-hash');
 const app = express();
 const PORT = 8080;
 
@@ -128,7 +128,7 @@ async function CrumbObject() {
             "Avocado Toast",
             "Berry Smoothie",
             "Caprese",
-            "Chicken Fingers",
+            "Chicken Tenders",
             "Chips",
             "French Toast",
             "Fries",
@@ -147,9 +147,9 @@ async function CrumbObject() {
     }
 
     for (let item of data) {
-        
+
         if (!item.daysOfWeek.includes(new Date().getDay()))
-        // if (!item.daysOfWeek.includes(0))
+            // if (!item.daysOfWeek.includes(0))
             continue
 
         let index = reformattedData.exclusions.indexOf(item.title);
@@ -234,9 +234,11 @@ async function DiningObject() {
         result["Essies"] = EssiesObject;
         // result["Science Center"] = ScienceCenterObject;
         result["Kohlberg"] = KohlbergObject;
-        result["Crumb"] = await CrumbObject();
+        result["Crumb"] = await CrumbObject() ? await CrumbObject() : null;
         result["metadata"] = "generated";
 
+        let { TimeOfGeneration, date, ...payload } = result
+        result["hash"] = hash(payload)
 
         return result
     });
