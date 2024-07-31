@@ -56,7 +56,7 @@ function objectifier(venue, html) {
             var match;
 
             while ((match = regex.exec(html)) !== null) {
-                const menuTitle = match[1];
+                const menuTitle = match[1] == 'brunch' ? 'lunch' : match[1];
                 const menuItems = match[2];
 
                 const items = processItems(menuItems);
