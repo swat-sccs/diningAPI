@@ -82,89 +82,92 @@ function objectifier(venue, html) {
             ret['meal'] = ESMeal;
 
             return ret;
-        // case 'science_center': // doesn't contain any meaningful data
-        //     ret["test"] = 'test'
-        //     return ret;
+        case 'science_center':
+            ret["vendor"] = html.match(/<span>(.*?)<\/span>/)[1]
+            return ret;
         case 'kohlberg':
-            const KBSoupMatch = html.match(KBSoupRegex);
-            const KBSoup = KBSoupMatch ? KBSoupMatch[1].trim() : null;
-            ret['soup'] = KBSoup;
+            ret['soup'] = html.match(KBSoupRegex) ? html.match(KBSoupRegex)[1].trim() : null;;
 
             const menuMatch = html.match(KBMenuRegex);
             // const menuMatch = html.match(/m/);
-            if (menuMatch) {
-                const items = menuMatch[0].split('</p>').map(item => item.trim());
-                // console.log(items)
-                const menuItems = items.slice(0).map(instance => {
-                    const item = stripHtmlTags(instance);
-                    if (item == '') {
-                        return {};
-                    }
+            // console.log(menuMatch)
 
-                    const properties = [];
-
-                    return { item, properties };
-                });
-
-                ret['menu'] = menuItems;
-            } else {
+            if (!menuMatch) {
                 console.log('No Kolhberg menu found.');
                 ret['menu'] = null;
+                return ret
             }
+
+            const items = menuMatch[0].split('</p>').map(item =>
+                stripHtmlTags(item
+                    .trim()
+                    .replace("&amp;", "&")
+                    .replace(new RegExp("menu", "ig"), "")
+                )
+            );
+
+            const menuItems = items.map(item => {
+                // console.log(item)
+                return item == '' ? {} : { item, properties: [] };
+            });
+
+            ret['menu'] = menuItems;
+
             return ret;
+
     };
 
 };
 
+// Crumb Project has been deprecated
+// async function CrumbObject() {
+//     const CrumbURL = "https://crumb.sccs.swarthmore.edu/api/cal"
+//     const data = await Get(CrumbURL)
 
-async function CrumbObject() {
-    const CrumbURL = "https://crumb.sccs.swarthmore.edu/api/cal"
-    const data = await Get(CrumbURL)
+//     var reformattedData = {
+//         "menu": [],
+//         "specials": [],
+//         "exclusions": [
+//             "Avocado Toast",
+//             "Berry Smoothie",
+//             "Caprese",
+//             "Chicken Tenders",
+//             "Chips",
+//             "French Toast",
+//             "Fries",
+//             "Hot Chocolate",
+//             "Italian Soda",
+//             "Loaded Quesadilla",
+//             "London Fog",
+//             "Matcha Latte",
+//             "Milkshake",
+//             "Nachos",
+//             "Pancakes",
+//             "Simple Quesadilla",
+//             "Tea"
+//         ],
+//         "time": "9:00pm - 11:00pm"
+//     }
 
-    var reformattedData = {
-        "menu": [],
-        "specials": [],
-        "exclusions": [
-            "Avocado Toast",
-            "Berry Smoothie",
-            "Caprese",
-            "Chicken Tenders",
-            "Chips",
-            "French Toast",
-            "Fries",
-            "Hot Chocolate",
-            "Italian Soda",
-            "Loaded Quesadilla",
-            "London Fog",
-            "Matcha Latte",
-            "Milkshake",
-            "Nachos",
-            "Pancakes",
-            "Simple Quesadilla",
-            "Tea"
-        ],
-        "time": "9:00pm - 11:00pm"
-    }
+//     for (let item of data) {
 
-    for (let item of data) {
+//         if (!item.daysOfWeek.includes(new Date().getDay()))
+//             // if (!item.daysOfWeek.includes(0))
+//             continue
 
-        if (!item.daysOfWeek.includes(new Date().getDay()))
-            // if (!item.daysOfWeek.includes(0))
-            continue
+//         let index = reformattedData.exclusions.indexOf(item.title);
 
-        let index = reformattedData.exclusions.indexOf(item.title);
-
-        if (index > -1) {
-            reformattedData.menu.push(item.title.trim())
-            reformattedData.exclusions.splice(index, 1)
-        } else {
-            reformattedData.specials.push(item.title.trim())
-        }
-    }
+//         if (index > -1) {
+//             reformattedData.menu.push(item.title.trim())
+//             reformattedData.exclusions.splice(index, 1)
+//         } else {
+//             reformattedData.specials.push(item.title.trim())
+//         }
+//     }
 
 
-    return reformattedData
-}
+//     return reformattedData
+// }
 
 
 async function DiningObject() {
@@ -178,18 +181,17 @@ async function DiningObject() {
 
         const dc = data.dining_center
         const es = data.essies[0]
-        // const sc = data.science_center[0]
+        const sc = data.science_center[0]
         const kb = data.kohlberg[0]
 
         var DiningCenterObject = {};
         var EssiesObject = {};
-        // var ScienceCenterObject = {};
+        var ScienceCenterObject = {};
         var KohlbergObject = {};
 
-        // DiningCenterObject['test'] = objectifier('sharples', dc[2].html_description);
 
 
-        if (dc) {
+        if (dc.length) {
             for (let menu of dc) {
                 let title = menu.title.toLowerCase();
                 // console.log("NEW MENU NEW MENU: " + title + " \n\n")
@@ -202,6 +204,11 @@ async function DiningObject() {
 
                 DiningCenterObject[title]['time'] = menu.short_time;
             };
+
+            DiningCenterObject['open'] = true;
+        } else {
+            DiningCenterObject['open'] = false;
+            DiningCenterObject['desc'] = "The Dining Center is closed.";
         }
 
         if (es) {
@@ -212,9 +219,28 @@ async function DiningObject() {
             EssiesObject['end'] = time[1];
 
             EssiesObject['time'] = es.short_time;
+
+            EssiesObject['open'] = true;
+        } else {
+            EssiesObject['open'] = false;
+            EssiesObject['desc'] = "Essie's Corner is closed.";
         }
 
-        // ScienceCenterObject = objectifier('science_center', sc.html_description);
+        if (sc) {
+            ScienceCenterObject = objectifier('science_center', sc.html_description);
+
+            let time = sc.short_time.split(' ').filter(x => x !== '-');
+            ScienceCenterObject['start'] = time[0];
+            ScienceCenterObject['end'] = time[1];
+
+            ScienceCenterObject['time'] = es.short_time;
+
+            ScienceCenterObject['open'] = true;
+        } else {
+            ScienceCenterObject['open'] = false;
+            EssiesObject['desc'] = "The Science Center Cafe is closed.";
+        }
+
 
         if (kb) {
             KohlbergObject = objectifier('kohlberg', kb.html_description);
@@ -224,6 +250,10 @@ async function DiningObject() {
             KohlbergObject['end'] = time[1];
 
             KohlbergObject['time'] = kb.short_time;
+            KohlbergObject['open'] = true;
+        } else {
+            KohlbergObject['open'] = false;
+            KohlbergObject['desc'] = "Kholberg Coffee Bar is closed.";
         }
 
         result["TimeOfGeneration"] = new Date().toString();
@@ -232,9 +262,9 @@ async function DiningObject() {
 
         result["Dining Center"] = DiningCenterObject;
         result["Essies"] = EssiesObject;
-        // result["Science Center"] = ScienceCenterObject;
+        result["Science Center"] = ScienceCenterObject;
         result["Kohlberg"] = KohlbergObject;
-        result["Crumb"] = await CrumbObject() ? await CrumbObject() : null;
+        // result["Crumb"] = await CrumbObject() ? await CrumbObject() : null;
         result["metadata"] = "generated";
 
         let { TimeOfGeneration, date, ...payload } = result
@@ -258,7 +288,7 @@ app.get('/api', async (req, res) => {
     // if something was cached, return it
     if (cachedData) {
         res.json(cachedData);
-        // console.log("Data cached found, responding...")
+        console.log("Data cached found, responding...")
         return
     }
 
