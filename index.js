@@ -189,30 +189,35 @@ async function DiningObject() {
         var ScienceCenterObject = {};
         var KohlbergObject = {};
 
-
-
+        DiningCenterObject["meals"] = {}
+        EssiesObject["meals"] = {}
+        ScienceCenterObject["meals"] = {}
+        KohlbergObject["meals"] = {}
         if (dc.length) {
             for (let menu of dc) {
                 let title = menu.title.toLowerCase();
                 // console.log("NEW MENU NEW MENU: " + title + " \n\n")
 
-                DiningCenterObject[title] = objectifier('sharples', menu.html_description);
+                DiningCenterObject["meals"][title] = objectifier('sharples', menu.html_description);
 
                 let time = menu.short_time.split(' ').filter(x => x !== '-');
-                DiningCenterObject[title]['start'] = time[0];
-                DiningCenterObject[title]['end'] = time[1];
+                DiningCenterObject["meals"][title]['start'] = time[0];
+                DiningCenterObject["meals"][title]['end'] = time[1];
 
-                DiningCenterObject[title]['time'] = menu.short_time;
+                DiningCenterObject["meals"][title]['time'] = menu.short_time;
             };
 
             DiningCenterObject['open'] = true;
+            DiningCenterObject['desc'] = data.dining_center.description;
+            DiningCenterObject['html_desc'] = data.dining_center.html_description;
         } else {
             DiningCenterObject['open'] = false;
             DiningCenterObject['desc'] = "The Dining Center is closed.";
+            DiningCenterObject['html_desc'] = "The Dining Center is closed.";
         }
 
         if (es) {
-            EssiesObject = objectifier('essies', es.description);
+            EssiesObject["meals"] = objectifier('essies', es.description);
 
             let time = es.short_time.split(' ').filter(x => x !== '-');
             EssiesObject['start'] = time[0];
@@ -221,13 +226,16 @@ async function DiningObject() {
             EssiesObject['time'] = es.short_time;
 
             EssiesObject['open'] = true;
+            EssiesObject['desc'] = es.description;
+            EssiesObject['html_desc'] = es.html_description;
         } else {
             EssiesObject['open'] = false;
             EssiesObject['desc'] = "Essie's Corner is closed.";
+            EssiesObject['html_desc'] = "Essie's Corner is closed.";
         }
 
         if (sc) {
-            ScienceCenterObject = objectifier('science_center', sc.html_description);
+            ScienceCenterObject["meals"] = objectifier('science_center', sc.html_description);
 
             let time = sc.short_time.split(' ').filter(x => x !== '-');
             ScienceCenterObject['start'] = time[0];
@@ -236,9 +244,12 @@ async function DiningObject() {
             ScienceCenterObject['time'] = es.short_time;
 
             ScienceCenterObject['open'] = true;
+            ScienceCenterObject['desc'] = sc.description;
+            ScienceCenterObject['html_desc'] = sc.html_description;
         } else {
             ScienceCenterObject['open'] = false;
-            EssiesObject['desc'] = "The Science Center Cafe is closed.";
+            ScienceCenterObject['desc'] = "The Science Center Cafe is closed.";
+            ScienceCenterObject['html_desc'] = "The Science Center Cafe is closed.";
         }
 
 
@@ -251,9 +262,12 @@ async function DiningObject() {
 
             KohlbergObject['time'] = kb.short_time;
             KohlbergObject['open'] = true;
+            KohlbergObject['description'] = kb.description;
+            KohlbergObject['html_desc'] = kb.html_description;
         } else {
             KohlbergObject['open'] = false;
-            KohlbergObject['desc'] = "Kholberg Coffee Bar is closed.";
+            KohlbergObject['desc'] = "Kohlberg Coffee Bar is closed.";
+            KohlbergObject['html_desc'] = "Kohlberg Coffee Bar is closed.";
         }
 
         result["TimeOfGeneration"] = new Date().toString();
