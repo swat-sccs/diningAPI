@@ -8,7 +8,7 @@ app.set('trust proxy', 'loopback');
 
 const url = 'https://dash.swarthmore.edu/dining_json';
 
-const KBMenuRegex = /(?:Menu|order)(.+)<\/i>/gi;
+const KBMenuRegex = /(?:GET)(.+)<\/i>/gi;
 const KBSoupRegex = /Soup(?:\s?)-(?:\s?)(.+?)</;
 
 var cachedData;
@@ -16,6 +16,7 @@ var cachedData;
 
 // remove all <></> tags, trim whitespace, and replace double spaces with single ones 
 function stripHtmlTags(s) {
+    if (!s) return null;
     return s.replace(/<\/?[^>]+(>|$)/g, '').trim().replace(/\s{2,}/g, ' ');
 }
 
@@ -25,48 +26,50 @@ async function Get(url) {
     return data;
 };
 
+const sortEntrees = (items) => {
+    const entreeKeywords = ["chicken", "steak", "beef", "shrimp", "bacon", "sausage",
+        "pork", "pot roast", "meatball", "lamb", "turkey", "tilapia", "salmon", "wing",
+        "fried rice", "curry", "aloo gobi", "hotdog", "burger", "pizza", "vindaloo", "cod", "fish", "pollock",
+        "falafel", "catfish", "quesadilla", "pancake", "waffle", "tempeh", "tofu",
+        "seitan", "pollock", "masala", "lo mein", "chow mein", "pad thai", "pasta",
+        "mahi", "bean bake", "catfish", "risotto", "meatloaf", "pierogies"];
+    return items.split(',').map(item => {
+        const properties = item.match(/::(.*?)::/g) || [];
+        return {
+            item: item.replace(/::(.*?)::/g, '').trim(),
+            properties: properties.map(prop => prop.replace(/::/g, '').replace(/ /g, '').trim())
+        }
+    }).sort((a, b) => {
+        const aScore = entreeKeywords.filter(keyword => a.item.toLowerCase().includes(keyword)).length;
+        const bScore = entreeKeywords.filter(keyword => b.item.toLowerCase().includes(keyword)).length;
+        return bScore - aScore;
+    });
+};
+
+
 function objectifier(venue, html) {
     const ret = {};
     switch (venue) {
-        case 'sharples':
-            // create a dummy div element to hold the HTML
-            // console.log(html)
+        case 'dining_center':
             const regex = /<span(?:.+?)>(.+?)<\/span><ul><li>(.+?)<\/li><\/ul>/gm;
-
-            const processItems = (items) => {
-                const entreeKeywords = ["chicken", "steak", "beef", "shrimp", "bacon", "sausage",
-                    "pork", "pot roast", "meatball", "lamb", "turkey", "tilapia", "salmon", "wing",
-                    "fried rice", "curry", "aloo gobi", "hotdog", "burger", "pizza", "vindaloo", "cod", "fish", "pollock",
-                    "falafel", "catfish", "quesadilla", "pancake", "waffle", "tempeh", "tofu",
-                    "seitan", "pollock", "masala", "lo mein", "chow mein", "pad thai", "pasta",
-                    "mahi", "bean bake", "catfish", "risotto", "meatloaf", "pierogies"];
-                return items.split(',').map(item => {
-                    const properties = item.match(/::(.*?)::/g) || [];
-                    return {
-                        item: item.replace(/::(.*?)::/g, '').trim(),
-                        properties: properties.map(prop => prop.replace(/::/g, '').replace(/ /g, '').trim())
-                    }
-                }).sort((a, b) => {
-                    const aScore = entreeKeywords.filter(keyword => a.item.toLowerCase().includes(keyword)).length;
-                    const bScore = entreeKeywords.filter(keyword => b.item.toLowerCase().includes(keyword)).length;
-                    return bScore - aScore;
-                });
-            };
 
             var match;
 
+            // TODO: FIX THIS VULNERABILITY
+            // SHOULD NOT RELY ON EXEC
             while ((match = regex.exec(html)) !== null) {
+                // console.log(match)
                 const menuTitle = match[1] == 'brunch' ? 'lunch' : match[1];
                 const menuItems = match[2];
 
-                const items = processItems(menuItems);
+                const items = sortEntrees(menuItems);
                 ret[menuTitle] = items;
             }
 
             return ret;
         case 'essies':
             const soupMatch = html.match(/Soup-(.*?) Today's Lunch Special/);
-            const lunchMatch = html.match(/Today's Lunch Special\s+([^.]+)/);
+            const lunchMatch = html.match(/Today'?s Lunch Special\s+([^.]+)/);
             const mealMatch = html.match(/local food vendor will be\s+([^.]+)/);
 
             const ESSoup = soupMatch ? soupMatch[1] : null;
@@ -77,13 +80,13 @@ function objectifier(venue, html) {
             // console.log("Essie's Special: " + ESLunch);
             // console.log("Essie's Meal: " + ESMeal);
 
-            ret['soup'] = ESSoup;
-            ret['special'] = ESLunch;
-            ret['meal'] = ESMeal;
+            ret['soup'] = stripHtmlTags(ESSoup);
+            ret['special'] = stripHtmlTags(ESLunch);
+            ret['meal'] = stripHtmlTags(ESMeal);
 
             return ret;
         case 'science_center':
-            ret["vendor"] = html.match(/<span>(.*?)<\/span>/)[1]
+            ret["vendor"] = html.match(/<span>(.*?)<\/span>/) ? html.match(/<span>(.*?)<\/span>/)[1] : null
             return ret;
         case 'kohlberg':
             ret['soup'] = html.match(KBSoupRegex) ? html.match(KBSoupRegex)[1].trim() : null;;
@@ -98,7 +101,7 @@ function objectifier(venue, html) {
                 return ret
             }
 
-            const items = menuMatch[0].split('</p>').map(item =>
+            const items = menuMatch[0].split('<br>').map(item =>
                 stripHtmlTags(item
                     .trim()
                     .replace("&amp;", "&")
@@ -108,10 +111,12 @@ function objectifier(venue, html) {
 
             const menuItems = items.map(item => {
                 // console.log(item)
-                return item == '' ? {} : { item, properties: [] };
+                if (item != '' && item != 'GET' && item) {
+                    return { item, properties: [] };
+                }
             });
 
-            ret['menu'] = menuItems;
+            ret['menu'] = menuItems.filter(n => n);
 
             return ret;
 
@@ -119,66 +124,45 @@ function objectifier(venue, html) {
 
 };
 
-// Crumb Project has been deprecated
-// async function CrumbObject() {
-//     const CrumbURL = "https://crumb.sccs.swarthmore.edu/api/cal"
-//     const data = await Get(CrumbURL)
-
-//     var reformattedData = {
-//         "menu": [],
-//         "specials": [],
-//         "exclusions": [
-//             "Avocado Toast",
-//             "Berry Smoothie",
-//             "Caprese",
-//             "Chicken Tenders",
-//             "Chips",
-//             "French Toast",
-//             "Fries",
-//             "Hot Chocolate",
-//             "Italian Soda",
-//             "Loaded Quesadilla",
-//             "London Fog",
-//             "Matcha Latte",
-//             "Milkshake",
-//             "Nachos",
-//             "Pancakes",
-//             "Simple Quesadilla",
-//             "Tea"
-//         ],
-//         "time": "9:00pm - 11:00pm"
-//     }
-
-//     for (let item of data) {
-
-//         if (!item.daysOfWeek.includes(new Date().getDay()))
-//             // if (!item.daysOfWeek.includes(0))
-//             continue
-
-//         let index = reformattedData.exclusions.indexOf(item.title);
-
-//         if (index > -1) {
-//             reformattedData.menu.push(item.title.trim())
-//             reformattedData.exclusions.splice(index, 1)
-//         } else {
-//             reformattedData.specials.push(item.title.trim())
-//         }
-//     }
-
-
-//     return reformattedData
-// }
-
-
 async function DiningObject() {
     return Get(url).then(async data => {
         const result = {}
 
-        // console.log(data.dining_center[2])
-        // const stripped = stripHtmlTags(data.essies[0].html_description)
-        // console.log(stripped)
-        // console.log(data.essies[0].html_description)
+        const venues = ['dining_center', 'essies', 'kohlberg', 'science_center']
 
+        for (let venue of venues) {
+            let subtree = data[venue];
+
+            let venueObject = {
+                'meals': {},
+                'venue': venue,
+                'open': false,
+            };
+
+            if (!subtree.length) {
+                result[venue] = venueObject;
+                continue;
+            }
+
+            for (let menu of subtree) {
+                let title = menu.title.trim();
+                if (title == 'brunch') title = 'lunch';
+                if (title == 'Essie\'s Corner Open') title = 'Essies';
+                if (title == 'Kohlberg Open') title = 'Kohlberg';
+                venueObject.meals[title] = objectifier(venue, menu.html_description);
+                venueObject.meals[title]['venue'] = venue;
+                venueObject.meals[title]['time'] = menu.short_time;
+                venueObject.meals[title]['desc'] = menu.description;
+                venueObject.meals[title]['html_desc'] = menu.html_description;
+
+            };
+            venueObject['open'] = true;
+
+            result[venue] = venueObject
+        };
+
+
+        // DEPRECATE BELOW:
         const dc = data.dining_center
         const es = data.essies[0]
         const sc = data.science_center[0]
@@ -189,27 +173,23 @@ async function DiningObject() {
         var ScienceCenterObject = {};
         var KohlbergObject = {};
 
-        DiningCenterObject["meals"] = {}
-        EssiesObject["meals"] = {}
-        ScienceCenterObject["meals"] = {}
-        KohlbergObject["meals"] = {}
+        DiningCenterObject["venue"] = 'dining_center'
+        EssiesObject["venue"] = 'essies'
+        ScienceCenterObject["venue"] = 'science_center'
+        KohlbergObject["venue"] = 'kohlberg'
+
         if (dc.length) {
+            DiningCenterObject["meals"] = {}
             for (let menu of dc) {
                 let title = menu.title.toLowerCase();
-                // console.log("NEW MENU NEW MENU: " + title + " \n\n")
-
-                DiningCenterObject["meals"][title] = objectifier('sharples', menu.html_description);
-
-                let time = menu.short_time.split(' ').filter(x => x !== '-');
-                DiningCenterObject["meals"][title]['start'] = time[0];
-                DiningCenterObject["meals"][title]['end'] = time[1];
-
+                if (title == 'brunch') title = 'lunch';
+                DiningCenterObject["meals"][title] = objectifier('dining_center', menu.html_description);
                 DiningCenterObject["meals"][title]['time'] = menu.short_time;
             };
 
             DiningCenterObject['open'] = true;
-            DiningCenterObject['desc'] = data.dining_center.description;
-            DiningCenterObject['html_desc'] = data.dining_center.html_description;
+            DiningCenterObject['desc'] = dc.description;
+            DiningCenterObject['html_desc'] = dc.html_description;
         } else {
             DiningCenterObject['open'] = false;
             DiningCenterObject['desc'] = "The Dining Center is closed.";
@@ -218,10 +198,6 @@ async function DiningObject() {
 
         if (es) {
             EssiesObject["meals"] = objectifier('essies', es.description);
-
-            let time = es.short_time.split(' ').filter(x => x !== '-');
-            EssiesObject['start'] = time[0];
-            EssiesObject['end'] = time[1];
 
             EssiesObject['time'] = es.short_time;
 
@@ -237,12 +213,7 @@ async function DiningObject() {
         if (sc) {
             ScienceCenterObject["meals"] = objectifier('science_center', sc.html_description);
 
-            let time = sc.short_time.split(' ').filter(x => x !== '-');
-            ScienceCenterObject['start'] = time[0];
-            ScienceCenterObject['end'] = time[1];
-
-            ScienceCenterObject['time'] = es.short_time;
-
+            ScienceCenterObject['time'] = sc.short_time;
             ScienceCenterObject['open'] = true;
             ScienceCenterObject['desc'] = sc.description;
             ScienceCenterObject['html_desc'] = sc.html_description;
@@ -254,35 +225,27 @@ async function DiningObject() {
 
 
         if (kb) {
-            KohlbergObject = objectifier('kohlberg', kb.html_description);
-
-            let time = kb.short_time.split(' ').filter(x => x !== '-');
-            KohlbergObject['start'] = time[0];
-            KohlbergObject['end'] = time[1];
+            KohlbergObject['meals'] = objectifier('kohlberg', kb.html_description);
 
             KohlbergObject['time'] = kb.short_time;
             KohlbergObject['open'] = true;
-            KohlbergObject['description'] = kb.description;
+            KohlbergObject['desc'] = kb.description;
             KohlbergObject['html_desc'] = kb.html_description;
         } else {
             KohlbergObject['open'] = false;
             KohlbergObject['desc'] = "Kohlberg Coffee Bar is closed.";
             KohlbergObject['html_desc'] = "Kohlberg Coffee Bar is closed.";
         }
-
-        result["TimeOfGeneration"] = new Date().toString();
-        let now = new Date();
-        result["date"] = new Date(now.getFullYear(), now.getMonth(), now.getDate(), -5, 0, 0, 0);
-
         result["Dining Center"] = DiningCenterObject;
         result["Essies"] = EssiesObject;
         result["Science Center"] = ScienceCenterObject;
         result["Kohlberg"] = KohlbergObject;
-        // result["Crumb"] = await CrumbObject() ? await CrumbObject() : null;
-        result["metadata"] = "generated";
 
-        let { TimeOfGeneration, date, ...payload } = result
-        result["hash"] = hash(payload)
+        // TODO: DEPRECATE ABOVE
+
+        result["metadata"] = "generated";
+        result["hash"] = hash(result)
+        result["TimeOfGeneration"] = new Date().toString();
 
         return result
     });
