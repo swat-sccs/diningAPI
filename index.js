@@ -8,7 +8,7 @@ app.set('trust proxy', 'loopback');
 
 const url = 'https://dash.swarthmore.edu/dining_json';
 
-const KBMenuRegex = /(?:GET)(.+)<\/i>/gi;
+const KBMenuRegex = /(?:<p><i>)(.+)<\/i><\/p>/gi;
 const KBSoupRegex = /Soup(?:\s?)-(?:\s?)(.+?)</;
 
 var cachedData;
@@ -160,88 +160,6 @@ async function DiningObject() {
 
             result[venue] = venueObject
         };
-
-
-        // DEPRECATE BELOW:
-        const dc = data.dining_center
-        const es = data.essies[0]
-        const sc = data.science_center[0]
-        const kb = data.kohlberg[0]
-
-        var DiningCenterObject = {};
-        var EssiesObject = {};
-        var ScienceCenterObject = {};
-        var KohlbergObject = {};
-
-        DiningCenterObject["venue"] = 'dining_center'
-        EssiesObject["venue"] = 'essies'
-        ScienceCenterObject["venue"] = 'science_center'
-        KohlbergObject["venue"] = 'kohlberg'
-
-        if (dc.length) {
-            DiningCenterObject["meals"] = {}
-            for (let menu of dc) {
-                let title = menu.title.toLowerCase();
-                if (title == 'brunch') title = 'lunch';
-                DiningCenterObject["meals"][title] = objectifier('dining_center', menu.html_description);
-                DiningCenterObject["meals"][title]['time'] = menu.short_time;
-            };
-
-            DiningCenterObject['open'] = true;
-            DiningCenterObject['desc'] = dc.description;
-            DiningCenterObject['html_desc'] = dc.html_description;
-        } else {
-            DiningCenterObject['open'] = false;
-            DiningCenterObject['desc'] = "The Dining Center is closed.";
-            DiningCenterObject['html_desc'] = "The Dining Center is closed.";
-        }
-
-        if (es) {
-            EssiesObject["meals"] = objectifier('essies', es.description);
-
-            EssiesObject['time'] = es.short_time;
-
-            EssiesObject['open'] = true;
-            EssiesObject['desc'] = es.description;
-            EssiesObject['html_desc'] = es.html_description;
-        } else {
-            EssiesObject['open'] = false;
-            EssiesObject['desc'] = "Essie's Corner is closed.";
-            EssiesObject['html_desc'] = "Essie's Corner is closed.";
-        }
-
-        if (sc) {
-            ScienceCenterObject["meals"] = objectifier('science_center', sc.html_description);
-
-            ScienceCenterObject['time'] = sc.short_time;
-            ScienceCenterObject['open'] = true;
-            ScienceCenterObject['desc'] = sc.description;
-            ScienceCenterObject['html_desc'] = sc.html_description;
-        } else {
-            ScienceCenterObject['open'] = false;
-            ScienceCenterObject['desc'] = "The Science Center Cafe is closed.";
-            ScienceCenterObject['html_desc'] = "The Science Center Cafe is closed.";
-        }
-
-
-        if (kb) {
-            KohlbergObject['meals'] = objectifier('kohlberg', kb.html_description);
-
-            KohlbergObject['time'] = kb.short_time;
-            KohlbergObject['open'] = true;
-            KohlbergObject['desc'] = kb.description;
-            KohlbergObject['html_desc'] = kb.html_description;
-        } else {
-            KohlbergObject['open'] = false;
-            KohlbergObject['desc'] = "Kohlberg Coffee Bar is closed.";
-            KohlbergObject['html_desc'] = "Kohlberg Coffee Bar is closed.";
-        }
-        result["Dining Center"] = DiningCenterObject;
-        result["Essies"] = EssiesObject;
-        result["Science Center"] = ScienceCenterObject;
-        result["Kohlberg"] = KohlbergObject;
-
-        // TODO: DEPRECATE ABOVE
 
         result["metadata"] = "generated";
         result["hash"] = hash(result)
